@@ -21,7 +21,7 @@ class codatratamento:
         if self.dicionarioInterpretado == None:
             print("ERRO: SEM DICIONARIO INTERPRETADO! Dicionario a ser interpretado não encontrado no estanciamento desta Classe.")
             return
-        
+        self.dataFrame[coluna] = self.dataFrame[coluna].apply(lambda x: str(x))
         self.dataFrame[coluna] = self.dataFrame[coluna].apply(codatratamento.trataEInvertTipoLogra)
         self.dataFrame[coluna] = self.dataFrame[coluna].apply(codatratamento.stripEMaiusculoSemAcento)
 
