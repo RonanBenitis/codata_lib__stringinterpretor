@@ -11,22 +11,23 @@ class codatratamento:
         self.dataFrame = dataFrame
         self.dicionarioModelo = dicionarioModelo
         self.dicionarioInterpretado = dicionarioInterpretado
-        self.log = {}
+        self.log_dicio_interpret = {}
     
     # >>>>>>>>>>>>>>>>>=========================<<<<<<<<<<<<<<<<<<<<<
     # >>>>>>>>>>>>>>>>>    MÉTODOS DO OBJETO    <<<<<<<<<<<<<<<<<<<<<
     # >>>>>>>>>>>>>>>>>=========================<<<<<<<<<<<<<<<<<<<<<
-    def trataNomeBairro (self, coluna):
+    def trataNomeBairro (self, colunaLeitura, colunaTratada):
         if self.dicionarioInterpretado == None:
             print("ERRO: SEM DICIONARIO INTERPRETADO! Dicionario a ser interpretado não encontrado no estanciamento desta Classe.")
             return
-        self.dataFrame[coluna] = self.dataFrame[coluna].apply(lambda x: str(x))
-        self.dataFrame[coluna] = self.dataFrame[coluna].apply(codatratamento.trataEInvertTipoLogra)
-        self.dataFrame[coluna] = self.dataFrame[coluna].apply(codatratamento.stripEMaiusculoSemAcento)  
-        self.dataFrame[coluna] = self.dataFrame[coluna].apply(lambda x : codatratamento.buscaEAtualizaDict(x, self.dicionarioModelo, self.dicionarioInterpretado))
-        with open('log_dicio_interpret.json', 'w', encoding='utf8') as f: json.dump(self.dicionarioInterpretado, f, ensure_ascii=False)
+        self.dataFrame[colunaTratada] = self.dataFrame[colunaLeitura]
+        
+        self.dataFrame[colunaTratada] = self.dataFrame[colunaTratada].apply(lambda x: str(x))
+        self.dataFrame[colunaTratada] = self.dataFrame[colunaTratada].apply(codatratamento.trataEInvertTipoLogra)
+        self.dataFrame[colunaTratada] = self.dataFrame[colunaTratada].apply(codatratamento.stripEMaiusculoSemAcento)  
+        self.dataFrame[colunaTratada] = self.dataFrame[colunaTratada].apply(lambda x : codatratamento.buscaEAtualizaDict(x, self.dicionarioModelo, self.dicionarioInterpretado, self.log_dicio_interpret))
 
-        return self.dataFrame[coluna]
+        return self.dataFrame[colunaTratada]
 
     def getDicionarioInterpretado(self):
         return self.dicionarioInterpretado
@@ -63,7 +64,7 @@ class codatratamento:
         return valor
     
     @staticmethod
-    def buscaEAtualizaDict(x, dicionarioModelo, dicionarioInterpretado):
+    def buscaEAtualizaDict(x, dicionarioModelo, dicionarioInterpretado, log):
             if dicionarioInterpretado.get(x) != None:
                 return dicionarioInterpretado.get(x)
             elif dicionarioModelo.get(x) != None:
@@ -89,7 +90,9 @@ class codatratamento:
                     print(f"\n\u001b[32;1m>>> Adicionado no Dicionario Interpretado: Chave {x} | Valor: {best_match_value}\u001b[0m")
 
                 dicionarioInterpretado[x] = best_match_value
-                
+                log[x] = best_match_value
+                with open('log_cdt_interpret.json', 'w', encoding='utf8') as f: json.dump(log, f, ensure_ascii=False)
+
                 return best_match_value
                 
     @staticmethod
