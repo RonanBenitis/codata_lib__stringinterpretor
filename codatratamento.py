@@ -1,11 +1,9 @@
 import pandas as pd
 import unidecode
 from fuzzywuzzy import fuzz
-from datetime import datetime
+import json
 
 class codatratamento:
-    dataAtual = datetime.now().date()
-
     # >>>>>>>>>>>>>>>>>==================<<<<<<<<<<<<<<<<<<<<<
     # >>>>>>>>>>>>>>>>>    CONSTRUTOR    <<<<<<<<<<<<<<<<<<<<<
     # >>>>>>>>>>>>>>>>>==================<<<<<<<<<<<<<<<<<<<<<
@@ -13,6 +11,7 @@ class codatratamento:
         self.dataFrame = dataFrame
         self.dicionarioModelo = dicionarioModelo
         self.dicionarioInterpretado = dicionarioInterpretado
+        self.log = {}
     
     # >>>>>>>>>>>>>>>>>=========================<<<<<<<<<<<<<<<<<<<<<
     # >>>>>>>>>>>>>>>>>    MÉTODOS DO OBJETO    <<<<<<<<<<<<<<<<<<<<<
@@ -23,13 +22,9 @@ class codatratamento:
             return
         self.dataFrame[coluna] = self.dataFrame[coluna].apply(lambda x: str(x))
         self.dataFrame[coluna] = self.dataFrame[coluna].apply(codatratamento.trataEInvertTipoLogra)
-        self.dataFrame[coluna] = self.dataFrame[coluna].apply(codatratamento.stripEMaiusculoSemAcento)
-
-        def percorreDictInterpretado(x):
-            return self.dicionarioInterpretado.get(x, x)
-        self.dataFrame[coluna] = self.dataFrame[coluna].apply(percorreDictInterpretado)
-        
+        self.dataFrame[coluna] = self.dataFrame[coluna].apply(codatratamento.stripEMaiusculoSemAcento)  
         self.dataFrame[coluna] = self.dataFrame[coluna].apply(lambda x : codatratamento.buscaEAtualizaDict(x, self.dicionarioModelo, self.dicionarioInterpretado))
+        with open('log_dicio_interpret.json', 'w', encoding='utf8') as f: json.dump(self.dicionarioInterpretado, f, ensure_ascii=False)
 
         return self.dataFrame[coluna]
 
@@ -51,36 +46,27 @@ class codatratamento:
         print("----- Transformação realizada! -----")
     
     @staticmethod
-    def dictGetValue(dicionario):
-        print(" >>>>>> Lista de VALORES do Dicionario Modelo")
-        valores = list(dicionario.values())
-        for i, valor in enumerate(valores):
+    def getListKeyOrValue(dicionario, indiceKeysOrValues):
+        KeysOrValues = ( ("CHAVES", list(dicionario.keys())), ("VALORES", list(dicionario.values())) )
+        iKV = indiceKeysOrValues # >>> 0 para buscar CHAVES >>> 1 para buscar VALORES
+
+        print(f" >>>>>> Lista de {KeysOrValues[iKV][0]} do Dicionario Modelo")
+        listaKeysOrValues = KeysOrValues[iKV][1]
+        for i, valor in enumerate(listaKeysOrValues):
             print(f"\u001b[32;1m[{i}]\u001b[0m - {valor}")
         indiceEscolhido = int(input(">>>> Insira o indice desejado para atribuir como valor: "))
 
-        while indiceEscolhido < 0 or indiceEscolhido >= len(valores):
+        while indiceEscolhido < 0 or indiceEscolhido >= len(listaKeysOrValues):
             indiceEscolhido = int(input(f">>>> Indice {indiceEscolhido} não encontrado, digite um indice valido: "))
 
-        valor = valores[indiceEscolhido]
-        return valor
-    
-    @staticmethod
-    def dictGetKey(dicionario):
-        print(" >>>>>> Lista de CHAVES do Dicionario Modelo")
-        chaves = list(dicionario.keys())
-        for i, chave in enumerate(chaves):
-            print(f"\u001b[32;1m[{i}]\u001b[0m - {chave}")
-        indiceEscolhido = int(input(">>>> Insira o indice desejado para atribuir como valor: "))
-
-        while indiceEscolhido < 0 or indiceEscolhido >= len(chaves):
-            indiceEscolhido = int(input(f">>>> Indice {indiceEscolhido} não encontrado, digite um indice valido: "))
-
-        valor = chaves[indiceEscolhido]
+        valor = listaKeysOrValues[indiceEscolhido]
         return valor
     
     @staticmethod
     def buscaEAtualizaDict(x, dicionarioModelo, dicionarioInterpretado):
-            if dicionarioModelo.get(x) != None:
+            if dicionarioInterpretado.get(x) != None:
+                return dicionarioInterpretado.get(x)
+            elif dicionarioModelo.get(x) != None:
                 return dicionarioModelo.get(x)
             elif x in dicionarioModelo.values():
                 return x
@@ -99,11 +85,11 @@ class codatratamento:
                 if resp == "s":
                     print(f"\u001b[32;1m>>> Adicionado no Dicionario Interpretado! Chave: {x} | Valor: {best_match_value}\u001b[0m")
                 else:
-                    best_match_value = codatratamento.dictGetValue(dicionarioModelo)
-                    print(f"\n\u001b[0m>>> Adicionado no Dicionario Interpretado: Chave {x} | Valor: {best_match_value}\u001b[0m")
+                    best_match_value = codatratamento.getListKeyOrValue(dicionarioModelo, 1)
+                    print(f"\n\u001b[32;1m>>> Adicionado no Dicionario Interpretado: Chave {x} | Valor: {best_match_value}\u001b[0m")
 
                 dicionarioInterpretado[x] = best_match_value
-
+                
                 return best_match_value
                 
     @staticmethod
