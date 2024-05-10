@@ -41,9 +41,9 @@ class codatratamento:
         return unidecode.unidecode(x.upper())
     
     @staticmethod 
-    def dfToExcel(dataFrame, nomeArquivoOrigem, dataOutputPath):
+    def dfToExcel(dataFrame, nomeArquivoOrigem):
         print("----- Transformando DBF em EXCEL para a pasta output, aguarde! -----")
-        dataFrame.to_excel(dataOutputPath + nomeArquivoOrigem + '.xlsx', index=False)
+        dataFrame.to_excel(nomeArquivoOrigem + '.xlsx', index=False)
         print("----- Transformação realizada! -----")
     
     @staticmethod
