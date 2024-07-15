@@ -7,10 +7,12 @@ Classe Python destinado a tratamento diverso de dados, recebendo, em seu constru
 Essa classe, atualmente, é utilizada para interpretação de bairros em um DataFrame, retornando o valor correspondendo ao nome correto (e bairro correto) frente ao abairramento atual do município, utilizando a biblioteca FuzzyWuzzy para retornar as proximidades de nomes.
 Após a interpretação dos nomes pelo FuzzyWuzzy e validação por um usuário dos valores interpretados (somente os valores que não estão nos dicionarios), é alimentado o dicionario de interpretação, fazendo com que a cada execução a sua biblioteca se torne mais rica de interpretações.
 
-### Import de codatratamento
-Para dar import desta aplicação, caso tenha baixado na mesma pasta pai da aplicação que a utilizará (ou seja, codatalib sendo um diretório irmão à aplicação desejada), este snipet deve funcionar para importá-lo:
-```
-import sys
-sys.path.insert(0, '../codatalib')
-from codatratamento import codatratamento # type: ignore
+### Import codatratamento
+Adicionar a classe na raiz do projeto e importar o módulo no script em que será utilizado da seguinte forma:
+```Python
+from codatratamento import CodaTratamento
+
+cdt = CodaTratamento()
+
+df[nome_nova_coluna_bairro] = cdt.trata_nome_bairro(df['nome_coluna_bairro'])
 ```
