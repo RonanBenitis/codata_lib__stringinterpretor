@@ -33,7 +33,7 @@ def string_interpretor(list_data_model, serie):
         return
     
     serie = serie.apply(lambda cell_value: str(cell_value))
-    serie = serie.apply(strip_e_maiusculo_sem_acento)  
+    serie = serie.apply(strip_e_maiusculo_sem_acento)
     serie = serie.apply(lambda cell_value : data_interpret_updater(cell_value,
                                                                 list_data_model,
                                                                 dict_intepretado,
@@ -177,7 +177,6 @@ def index_list(data_model):
 
     for i, valor in enumerate(lista_data_model):
         print(f"\u001b[32;1m[{i}]\u001b[0m - {valor}")
-    indice_escolhido = int(input(">>>> Insira o indice desejado para atribuir como valor: "))
 
     # Valida entrada
     while True:
