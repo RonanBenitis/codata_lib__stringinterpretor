@@ -10,19 +10,19 @@ data_modificacao = datetime.now().date()
 data_interpret_path = Path.cwd() / 'strinter'
 bkp_interpret_path = Path.cwd() / 'strinter' / 'bkp'
 
-def string_interpretor(list_data_model, serie):
+def string_interpretor(data_model, serie_alvo):
     '''
     Execução principal da classe. Guarda os dados da instancia e
     chama as demais funções para tratamento da serie.
 
     input:
-    - Lista dos dados modelo
-    - Serie dos dados a serem interpretados
+    - data_model: Serie, lista ou json unidimensional dos dados modelo
+    - serie_alvo: Serie dos dados a serem interpretados
 
     output:
     - Serie dos dados interpretados (processados)
     '''
-    config()
+    config(data_model)
     dict_intepretado = load_interpretado_dict()
     log_dicio_interpret = {}
     bkp_interpretado_dict(dict_intepretado)
@@ -32,21 +32,31 @@ def string_interpretor(list_data_model, serie):
         print(">> ERROR: SEM DICIONARIO INTERPRETADO! Dicionario a ser interpretado não encontrado no estanciamento desta Classe.")
         return
     
-    serie = serie.apply(lambda cell_value: str(cell_value))
-    serie = serie.apply(strip_e_maiusculo_sem_acento)
-    serie = serie.apply(lambda cell_value : data_interpret_updater(cell_value,
-                                                                list_data_model,
-                                                                dict_intepretado,
-                                                                log_dicio_interpret))
+    serie_processada = serie_alvo.apply(lambda cell_value: str(cell_value))
+    serie_processada = serie_processada.apply(strip_e_maiusculo_sem_acento)
+    serie_processada = serie_processada.apply(lambda cell_value : data_interpret_updater(cell_value,
+                                                                                         data_model,
+                                                                                         dict_intepretado,
+                                                                                         log_dicio_interpret))
     update_interpretado_dict(dict_intepretado)
     print(f"\u001b[32;1m*** Processo finalizado! ***\u001b[0m")
 
-    return serie
+    return serie_processada
 
-def config():
+def config(data_model):
     '''
     Configura a estrutura de pastas da classe e reserva arquivo
     json de interpretação, os caminhos estão definidos no cabeçalho deste código
+
+    nota:
+    - datainterpret.json é criado, como padrão, com todos os valores de data_model
+    em maisculo, stripped e sem acento como chaves e seus valores como o valor
+    puro do data_model. Isso é feito para reduzir a quantidade de interações
+    por conta das comparações que o programa fará entre o dado a ser interpretado
+    e o dado modelo, além de evitar fazer 2 interpretações sobre o mesmo dado
+    - Isso ocorreria pois o programa faz limpezas no dado para evitar muitas
+    interações
+    - Limpezas: deixa todas as comparações como upper, sem acento e stripped.
     '''
     # monta estrutura de pastas
     (data_interpret_path).mkdir(parents=True, exist_ok=True)
@@ -55,12 +65,11 @@ def config():
     caminho_arquivo = data_interpret_path / 'datainterpret.json'
     if not caminho_arquivo.exists():
         print('\u001b[33;1m>> DataInterpretWarning:\u001b[0m data_interpret.json não encontrado! Criando novo arquivo')
-        empty_dict = {}
+        start_dict = {strip_e_maiusculo_sem_acento(d): d for d in list(data_model)}
 
         with open(caminho_arquivo, 'w', encoding='utf8') as file:
-            json.dump(empty_dict, file, ensure_ascii=False)
+            json.dump(start_dict, file, ensure_ascii=False)
 
-    
 def load_interpretado_dict():
     with open (data_interpret_path / 'datainterpret.json', 'r', encoding='utf8') as f: 
         data_interpret = json.load(f)
@@ -112,10 +121,12 @@ def data_interpret_updater(cell_value, data_model, data_interpret, log):
     formatação que estiver).
     - A normalização do data_model ocorre nessa função, a do valor da
     celula ocorre no string_interpretor
+    - Usou-se list(data_model) para iterar como uma lista independente
+    se o data_model é list, json unidimensional ou serie
     '''
     if data_interpret.get(cell_value) != None:
         return data_interpret.get(cell_value)
-    elif cell_value in data_model:
+    elif cell_value in list(data_model):
         return cell_value
     elif cell_value is numpy.nan or cell_value is None or str(cell_value).upper() == 'NAN':
         return {'': ''}
@@ -170,7 +181,7 @@ def index_list(data_model):
 
     nota:
     - lista_data_model usa list() para comportar a coleta por indice quando
-    data_model é json
+    data_model é json ou serie
     '''
     print(f" >>>>>> Lista de valores modelo")
     lista_data_model = list(data_model)
@@ -194,4 +205,3 @@ def index_list(data_model):
     valor = lista_data_model[indice_escolhido]
 
     return valor
-
