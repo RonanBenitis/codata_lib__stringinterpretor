@@ -151,6 +151,10 @@ def data_interpret_updater(cell_value, data_model, data_interpret, log):
         print(f"  - Correspondência mais proxima registrada: '{best_match_key}'\n  - \u001b[32;1mValor da correspondencia: '{best_match_value}'\u001b[0m\n  - Proximidade: {best_match_prox}")
         resp = str(input("A comparação está correta?\n   >>> \u001b[32;1ms\u001b[0m para sim | \u001b[32;1mn\u001b[0m ou \u001b[32;1menter\u001b[0m para não: "))
 
+        # Interrompe operação se digitado 'e'
+        if resp == 'e':
+            raise KeyboardInterrupt
+
         while resp != 's' and resp != 'n' and resp != '':
             print('Opção invalida!!')
             resp = str(input("A comparação está correta?\n   >>> \u001b[32;1ms\u001b[0m para sim | \u001b[32;1mn\u001b[0m ou \u001b[32;1menter\u001b[0m para não: "))
@@ -192,7 +196,14 @@ def index_list(data_model):
     # Valida entrada
     while True:
         try:
-            indice_escolhido = int(input(">>>> Insira o indice desejado para atribuir como valor: "))
+            indice_escolhido = input(">>>> Insira o indice desejado para atribuir como valor ou digite 'e' para encerrar a aplicação: ")
+
+            # Valida se o input de interrupção foi lançado
+            # Se não, casta pra int e no erro vai pra exceção
+            if indice_escolhido != 'e':
+                indice_escolhido = int(indice_escolhido)
+            else:
+                raise KeyboardInterrupt
 
             if indice_escolhido < 0 or indice_escolhido >= len(data_model):
                 indice_escolhido = int(input(f"Indice {indice_escolhido} não encontrado!!!"))
@@ -200,7 +211,7 @@ def index_list(data_model):
                 break # sai do loop
 
         except ValueError:
-            print('Valor inválido, ditie um número inteiro!!!')
+            print('Valor inválido, digite um número inteiro!!!')
 
     valor = lista_data_model[indice_escolhido]
 
